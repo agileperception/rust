@@ -20,7 +20,7 @@ matrix:
         MACOSX_STD_DEPLOYMENT_TARGET=10.7
       os: osx
       osx_image: xcode8.2
-      install: &osx_install_sccache >
+      install: >
         travis_retry curl -o /usr/local/bin/sccache https://s3.amazonaws.com/rust-lang-ci/rust-ci-mirror/2017-03-24-sccache-x86_64-apple-d
 arwin &&
           chmod +x /usr/local/bin/sccache &&
