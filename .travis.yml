@@ -33,12 +33,6 @@ env:
     # AWS_SECRET_ACCESS_KEY=...
     - secure: "Pixhh0hXDqGCdOyLtGFjli3J2AtDWIpyb2btIrLe956nCBDRutRoMm6rv5DI9sFZN07Mms7VzNNvhc9wCW1y63JAm414d2Co7Ob8kWMZlz9l9t7ACHuktUiis8yr+S4Quq1Vqd6pqi7pf2J++UxC8R/uLeqVrubzr6+X7AbmEFE="
 
-# Note that this is overridden on OSX builders
-install: >
-  travis_retry curl -o $HOME/stamp https://s3.amazonaws.com/rust-lang-ci/rust-ci-mirror/2017-03-17-stamp-x86_64-unknown-linux-musl &&
-    chmod +x $HOME/stamp &&
-    export PATH=$PATH:$HOME
-
 before_script:
   - >
       echo "#### Disk usage before running script:";
@@ -47,10 +41,13 @@ before_script:
 
 script:
   - >
-      if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-          travis_retry stamp sh -c 'git submodule deinit -f . && git submodule update --init' &&
-          stamp src/ci/run.sh;
-      fi
+      travis_retry stamp sh -c 'git submodule deinit -f . && git submodule update --init' &&
+      RUST_CONFIGURE_ARGS="$RUST_CONFIGURE_ARGS --enable-sccache --disable-manage-submodules --enable-locked-deps --enable-cargo-openssl-static --enable-llvm-clean-rebuild --release-channel=nightly --enable-llvm-static-stdcpp --enable-save-analysis"
+      ./configure $RUST_CONFIGURE_ARGS
+      make prepare
+      make -j $(sysctl -n hw.ncpu) tidy
+      ./x.py -j $(sysctl -n hw.ncpu) build openssl
+      #      stamp src/ci/run.sh;
 
 after_success:
   - >
@@ -78,44 +75,3 @@ after_failure:
   # it happened
   - dmesg | grep -i kill
 
-before_deploy:
-  - mkdir -p deploy/$TRAVIS_COMMIT
-  - >
-      if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-          rm -rf build/dist/doc &&
-          cp -r build/dist/* deploy/$TRAVIS_COMMIT;
-      else
-          rm -rf obj/build/dist/doc &&
-          cp -r obj/build/dist/* deploy/$TRAVIS_COMMIT;
-      fi
-
-deploy:
-  - provider: s3
-    bucket: rust-lang-ci
-    skip_cleanup: true
-    local_dir: deploy
-    upload_dir: rustc-builds
-    acl: public_read
-    region: us-east-1
-    access_key_id: AKIAIPQVNYF2T3DTYIWQ
-    secret_access_key:
-      secure: "FBqDqOTeIPMu6v/WYPf4CFSlh9rLRZGKVtpLa5KkyuOhXRTrnEzBduEtS8/FMIxdQImvurhSvxWvqRybMOi4qoVfjMqqpHAI7uBbidbrvAcJoHNsx6BgUNVCIoH6a0UsAjTUtm6/YPIpzbHoLZXPL0GrHPMk6Mu04qVSmcYNWn4="
-    on:
-      branch: auto
-      condition: $DEPLOY = 1
-
-  # this is the same as the above deployment provider except that it uploads to
-  # a slightly different directory and has a different trigger
-  - provider: s3
-    bucket: rust-lang-ci
-    skip_cleanup: true
-    local_dir: deploy
-    upload_dir: rustc-builds-alt
-    acl: public_read
-    region: us-east-1
-    access_key_id: AKIAIPQVNYF2T3DTYIWQ
-    secret_access_key:
-      secure: "FBqDqOTeIPMu6v/WYPf4CFSlh9rLRZGKVtpLa5KkyuOhXRTrnEzBduEtS8/FMIxdQImvurhSvxWvqRybMOi4qoVfjMqqpHAI7uBbidbrvAcJoHNsx6BgUNVCIoH6a0UsAjTUtm6/YPIpzbHoLZXPL0GrHPMk6Mu04qVSmcYNWn4="
-    on:
-      branch: auto
-      condition: $DEPLOY_ALT = 1
