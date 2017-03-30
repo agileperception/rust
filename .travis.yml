@@ -47,9 +47,6 @@ script:
       ./configure $RUST_CONFIGURE_ARGS &&
       make prepare &&
       make -j $(sysctl -n hw.ncpu) tidy &&
-      echo "----- BUILDING LLVM NOW -----" &&
-      ./x.py build src/llvm &&
-      echo "----- DONE BUILDING LLVM NOW -----" &&
       echo "----- BUILDING OPENSSL NOW -----" &&
       ./x.py build openssl ;
       echo "----- FINISHED BUILDING OPENSSL -----"
