@@ -18,6 +18,7 @@ matrix:
         SCCACHE_ERROR_LOG=/tmp/sccache.log
         MACOSX_DEPLOYMENT_TARGET=10.8
         MACOSX_STD_DEPLOYMENT_TARGET=10.7
+        CFG_BUILD=x86_64-apple-darwin
       os: osx
       osx_image: xcode8.2
       install: >
@@ -42,10 +43,13 @@ before_script:
 script:
   - >
       travis_retry stamp sh -c 'git submodule deinit -f . && git submodule update --init' &&
-      RUST_CONFIGURE_ARGS="$RUST_CONFIGURE_ARGS --enable-sccache --disable-manage-submodules --enable-locked-deps --enable-cargo-openssl-static --enable-llvm-clean-rebuild --release-channel=nightly --enable-llvm-static-stdcpp --enable-save-analysis --host=x86_64-apple-darwin" &&
+      RUST_CONFIGURE_ARGS="$RUST_CONFIGURE_ARGS --enable-sccache --disable-manage-submodules --enable-locked-deps --enable-cargo-openssl-static --release-channel=nightly --enable-llvm-static-stdcpp --disable-dist-src" &&
       ./configure $RUST_CONFIGURE_ARGS &&
       make prepare &&
       make -j $(sysctl -n hw.ncpu) tidy &&
+      echo "----- BUILDING LLVM NOW -----" &&
+      ./x.py build src/llvm &&
+      echo "----- DONE BUILDING LLVM NOW -----" &&
       echo "----- BUILDING OPENSSL NOW -----" &&
       ./x.py build openssl ;
       echo "----- FINISHED BUILDING OPENSSL -----"
