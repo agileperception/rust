@@ -46,7 +46,7 @@ script:
       ./configure $RUST_CONFIGURE_ARGS &&
       make prepare &&
       make -j $(sysctl -n hw.ncpu) tidy &&
-      ./x.py -j $(sysctl -n hw.ncpu) build openssl
+      ./x.py build openssl
       #      stamp src/ci/run.sh;
 
 after_success:
