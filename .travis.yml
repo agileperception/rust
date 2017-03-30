@@ -42,7 +42,7 @@ before_script:
 script:
   - >
       travis_retry stamp sh -c 'git submodule deinit -f . && git submodule update --init' &&
-      RUST_CONFIGURE_ARGS="$RUST_CONFIGURE_ARGS --enable-sccache --disable-manage-submodules --enable-locked-deps --enable-cargo-openssl-static --enable-llvm-clean-rebuild --release-channel=nightly --enable-llvm-static-stdcpp --enable-save-analysis" &&
+      RUST_CONFIGURE_ARGS="$RUST_CONFIGURE_ARGS --enable-sccache --disable-manage-submodules --enable-locked-deps --enable-cargo-openssl-static --enable-llvm-clean-rebuild --release-channel=nightly --enable-llvm-static-stdcpp --enable-save-analysis --host=x86_64-apple-darwin" &&
       ./configure $RUST_CONFIGURE_ARGS &&
       make prepare &&
       make -j $(sysctl -n hw.ncpu) tidy &&
